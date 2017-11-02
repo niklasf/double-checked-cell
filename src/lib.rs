@@ -77,7 +77,9 @@ impl<T> RefUnwindSafe for DoubleCheckedCell<T> { }
 #[cfg(test)]
 mod tests {
     use super::*;
+
     use std::panic;
+    use std::rc::Rc;
 
     #[test]
     fn test_poison() {
@@ -92,5 +94,20 @@ mod tests {
         assert!(panic::catch_unwind(|| {
             cell.get_or_init(|| true)
         }).is_err());
+    }
+
+    #[test]
+    fn test_drop() {
+        let rc = Rc::new(true);
+        assert_eq!(Rc::strong_count(&rc), 1);
+
+        {
+            let cell = DoubleCheckedCell::new();
+            cell.get_or_init(|| rc.clone());
+
+            assert_eq!(Rc::strong_count(&rc), 2);
+        }
+
+        assert_eq!(Rc::strong_count(&rc), 1);
     }
 }
