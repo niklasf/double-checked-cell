@@ -198,13 +198,22 @@ impl<T> DoubleCheckedCell<T> {
             let _lock = self.lock.lock().unwrap();
 
             if !self.initialized.load(Ordering::Relaxed) {
+                // There are no shared references to value because it is
+                // not yet initialized.
+                // There are no mutable references to value because we are
+                // holding a mutex.
                 let value = unsafe { &mut *self.value.get() };
                 *value = Some(init()?);
                 self.initialized.store(true, Ordering::Release);
             }
         }
 
+        // The value is now guaranteed to be initialized. This means no one
+        // is holding the mutex self.lock, and no one is holding a mutable
+        // reference.
         let value = unsafe { &*self.value.get() };
+
+        // Value is guaranteed to be initialized.
         Ok(unsafe { value.as_ref().unchecked_unwrap() })
     }
 
