@@ -115,11 +115,7 @@ pub struct DoubleCheckedCell<T> {
 
 impl<T> Default for DoubleCheckedCell<T> {
     fn default() -> DoubleCheckedCell<T> {
-        DoubleCheckedCell {
-            initialized: AtomicBool::new(false),
-            lock: Mutex::new(()),
-            value: UnsafeCell::new(None),
-        }
+        DoubleCheckedCell::new()
     }
 }
 
@@ -143,7 +139,11 @@ impl<T> DoubleCheckedCell<T> {
     /// assert_eq!(cell.get(), None);
     /// ```
     pub fn new() -> DoubleCheckedCell<T> {
-        Self::default()
+        DoubleCheckedCell {
+            initialized: AtomicBool::new(false),
+            lock: Mutex::new(()),
+            value: UnsafeCell::new(None),
+        }
     }
 
     /// Borrows the value if the cell is initialized.
