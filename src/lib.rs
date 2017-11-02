@@ -70,16 +70,25 @@ impl<T> DoubleCheckedCell<T> {
     }
 }
 
+// The internal state is only mutated while holding a mutex.
+unsafe impl<T: Sync> Sync for DoubleCheckedCell<T> { }
+
 // A panic during initialization will poison the interal mutex, thereby
 // poisoning the cell itself.
 impl<T> RefUnwindSafe for DoubleCheckedCell<T> { }
 
 #[cfg(test)]
+extern crate scoped_pool;
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
+    use std::sync::atomic::AtomicUsize;
     use std::panic;
     use std::rc::Rc;
+
+    use scoped_pool::Pool;
 
     #[test]
     fn test_poison() {
@@ -110,4 +119,38 @@ mod tests {
 
         assert_eq!(Rc::strong_count(&rc), 1);
     }
+
+    #[test]
+    fn test_threading() {
+        let n = AtomicUsize::new(0);
+        let cell = DoubleCheckedCell::new();
+
+        let pool = Pool::new(32);
+
+        pool.scoped(|scope| {
+            for _ in 0..1000 {
+                scope.execute(|| {
+                    let value = cell.get_or_init(|| {
+                        n.fetch_add(1, Ordering::Relaxed);
+                        true
+                    });
+
+                    assert!(*value);
+                });
+            }
+        });
+
+        assert_eq!(n.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn test_sync_send() {
+        fn assert_sync<T: Sync>(_: T) { }
+        fn assert_send<T: Send>(_: T) { }
+
+        assert_sync(DoubleCheckedCell::<usize>::new());
+        assert_send(DoubleCheckedCell::<usize>::new());
+    }
+
+    struct _AssertObjectSafe(Box<DoubleCheckedCell<usize>>);
 }
