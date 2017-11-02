@@ -240,9 +240,9 @@ impl<T> DoubleCheckedCell<T> {
             }
         }
 
-        // The value is now guaranteed to be initialized. This means no one
-        // is holding the mutex self.lock, and no one is holding a mutable
-        // reference.
+        // The only place that takes a mutable reference is inside the double
+        // checked scope above. But the value is guaranteed to be initialized,
+        // therefore no one can hold a mutable reference.
         let value = unsafe { &*self.value.get() };
 
         // Value is guaranteed to be initialized.
