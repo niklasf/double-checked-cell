@@ -44,12 +44,38 @@ impl<T: fmt::Debug> fmt::Debug for DoubleCheckedCell<T> {
     }
 }
 
+/// A thread-safe lazily initialized cell.
+///
+/// The cell is immutable once it is initialized.
+/// See the [module-level documentation](index.html) for more.
 impl<T> DoubleCheckedCell<T> {
+    /// Creates a new uninitialized `DoubleCheckedCell`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use double_checked_cell::DoubleCheckedCell;
+    ///
+    /// let cell = DoubleCheckedCell::<u32>::new();
+    /// assert_eq!(cell.get(), None);
+    /// ```
     pub fn new() -> DoubleCheckedCell<T> {
         Self::default()
     }
 
+    /// Unwraps the value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use double_checked_cell::DoubleCheckedCell;
+    ///
+    /// let cell = DoubleCheckedCell::from(42);
+    /// let contents = cell.into_inner();
+    /// assert_eq!(contents, Some(42));
+    /// ```
     pub fn into_inner(self) -> Option<T> {
+        // This method consumes self. Therefore no references can be around.
         unsafe { self.value.into_inner() }
     }
 
@@ -70,12 +96,40 @@ impl<T> DoubleCheckedCell<T> {
         Ok(unsafe { value.as_ref().unchecked_unwrap() })
     }
 
+    /// Borrows the value if the cell is initialized or initializes it from
+    /// a closure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use double_checked_cell::DoubleCheckedCell;
+    ///
+    /// let cell = DoubleCheckedCell::new();
+    ///
+    /// // Initialize the cell.
+    /// let value = cell.get_or_init(|| 1 + 2);
+    /// assert_eq!(*value, 3);
+    ///
+    /// // The cell is now immutable.
+    /// let value = cell.get_or_init(|| 42);
+    /// assert_eq!(*value, 3);
+    /// ```
     pub fn get_or_init<F>(&self, init: F) -> &T
         where F: FnOnce() -> T
     {
         self.get_or_try_init(|| Ok(init())).void_unwrap()
     }
 
+    /// Borrows the value if the cell is initialized.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use double_checked_cell::DoubleCheckedCell;
+    ///
+    /// let cell = DoubleCheckedCell::from("hello");
+    /// assert_eq!(cell.get(), Some(&"hello"));
+    /// ```
     pub fn get(&self) -> Option<&T> {
         self.get_or_try_init(|| Err(())).ok()
     }
