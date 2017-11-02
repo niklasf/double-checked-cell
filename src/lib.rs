@@ -40,8 +40,8 @@
 //!
 //! # Poisoning
 //!
-//! `DoubleCheckedCell` is unwind safe by implementing "poisoning". If an
-//! initilization closure is executed and panics, the `DoubleCheckedCell`
+//! `DoubleCheckedCell` achieves unwind safety by implementing "poisoning".
+//! If an initilization closure is executed and panics, the `DoubleCheckedCell`
 //! becomes poisoned. Any subsequent reads will then also panic.
 //!
 //! ```
