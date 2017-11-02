@@ -70,6 +70,16 @@ impl<T> DoubleCheckedCell<T> {
     }
 }
 
+impl<T> From<T> for DoubleCheckedCell<T> {
+    fn from(t: T) -> DoubleCheckedCell<T> {
+        DoubleCheckedCell {
+            initialized: AtomicBool::new(true),
+            lock: Mutex::new(()),
+            value: UnsafeCell::new(Some(t)),
+        }
+    }
+}
+
 // The internal state is only mutated while holding a mutex.
 unsafe impl<T: Sync> Sync for DoubleCheckedCell<T> { }
 
