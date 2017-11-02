@@ -20,22 +20,24 @@ extern crate double_checked_cell;
 
 use double_checked_cell::DoubleCheckedCell;
 
-let cell = DoubleCheckedCell::new();
+fn main() {
+    let cell = DoubleCheckedCell::new();
 
-// The cell starts uninitialized.
-assert_eq!(cell.get(), None);
+    // The cell starts uninitialized.
+    assert_eq!(cell.get(), None);
 
-// Perform potentially expensive initialization.
-let value = cell.get_or_init(|| 21 + 21);
-assert_eq!(*value, 42);
-assert_eq!(cell.get(), Some(&42));
+    // Perform potentially expensive initialization.
+    let value = cell.get_or_init(|| 21 + 21);
+    assert_eq!(*value, 42);
+    assert_eq!(cell.get(), Some(&42));
 
-// The cell is already initialized.
-let value = cell.get_or_init(|| {
-    panic!("initilization does not run again")
-});
-assert_eq!(*value, 42);
-assert_eq!(cell.get(), Some(&42));
+    // The cell is already initialized.
+    let value = cell.get_or_init(|| {
+        panic!("initilization does not run again")
+    });
+    assert_eq!(*value, 42);
+    assert_eq!(cell.get(), Some(&42));
+}
 ```
 
 
