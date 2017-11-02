@@ -164,7 +164,7 @@ impl<T> DoubleCheckedCell<T> {
         self.get_or_try_init(|| Ok(init())).void_unwrap()
     }
 
-    /// Borrows the value if the cell is initializes or attempts to initialize
+    /// Borrows the value if the cell is initialized or attempts to initialize
     /// it from a closure.
     ///
     /// # Errors
