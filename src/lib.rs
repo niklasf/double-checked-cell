@@ -12,6 +12,7 @@ extern crate unreachable;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::cell::UnsafeCell;
+use std::panic::RefUnwindSafe;
 
 use void::ResultVoidExt;
 use unreachable::UncheckedOptionExt;
@@ -66,5 +67,30 @@ impl<T> DoubleCheckedCell<T> {
 
     pub fn get(&self) -> Option<&T> {
         self.get_or_try_init(|| Err(())).ok()
+    }
+}
+
+// A panic during initialization will poison the interal mutex, thereby
+// poisoning the cell itself.
+impl<T> RefUnwindSafe for DoubleCheckedCell<T> { }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::panic;
+
+    #[test]
+    fn test_poison() {
+        let cell = DoubleCheckedCell::new();
+
+        // Poison the cell.
+        assert!(panic::catch_unwind(|| {
+            cell.get_or_init(|| panic!("oh no!"));
+        }).is_err());
+
+        // Now it is poisoned forever.
+        assert!(panic::catch_unwind(|| {
+            cell.get_or_init(|| true)
+        }).is_err());
     }
 }
