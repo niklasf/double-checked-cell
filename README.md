@@ -3,6 +3,42 @@ double-checked-cell
 
 A thread-safe lazily initialized cell using double-checked locking.
 
+[![Build Status](https://travis-ci.org/niklasf/double-checked-cell.svg?branch=master)](https://travis-ci.org/niklasf/double-checked-cell)
+[![crates.io](https://img.shields.io/crates/v/double-checked-cell.svg)](https://crates.io/crates/double-checked-cell)
+
+Introduction
+------------
+
+Provides a memory location that can be safely shared between threads and
+initialized at most once. Once the cell is initialized it becomes immutable.
+
+If you do not need to change the value after initialization
+`DoubleCheckedCell<T>` is more efficient than a `Mutex<Option<T>>`.
+
+```rust
+extern crate double_checked_cell;
+
+use double_checked_cell::DoubleCheckedCell;
+
+let cell = DoubleCheckedCell::new();
+
+// The cell starts uninitialized.
+assert_eq!(cell.get(), None);
+
+// Perform potentially expensive initialization.
+let value = cell.get_or_init(|| 21 + 21);
+assert_eq!(*value, 42);
+assert_eq!(cell.get(), Some(&42));
+
+// The cell is already initialized.
+let value = cell.get_or_init(|| {
+    panic!("initilization does not run again")
+});
+assert_eq!(*value, 42);
+assert_eq!(cell.get(), Some(&42));
+```
+
+
 Related crates
 --------------
 
