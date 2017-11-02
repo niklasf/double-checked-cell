@@ -38,6 +38,32 @@
 //! assert_eq!(cell.get(), Some(&42));
 //! ```
 //!
+//! # Errors
+//!
+//! `DoubleCheckedCell` supports fallible initialization.
+//!
+//! ```
+//! use std::fs::File;
+//! use std::io;
+//! use std::io::prelude::*;
+//! use double_checked_cell::DoubleCheckedCell;
+//!
+//! let cell = DoubleCheckedCell::new();
+//!
+//! let contents: io::Result<&String> = cell.get_or_try_init(|| {
+//!     let mut file = File::open("not-found.txt")?;
+//!     let mut contents = String::new();
+//!     file.read_to_string(&mut contents)?;
+//!     Ok(contents)
+//! });
+//!
+//! // File not found.
+//! assert!(contents.is_err());
+//!
+//! // Cell remains uninitialized for now.
+//! assert_eq!(cell.get(), None);
+//! ```
+//!
 //! # Poisoning
 //!
 //! `DoubleCheckedCell` achieves unwind safety by implementing "poisoning".
@@ -169,7 +195,8 @@ impl<T> DoubleCheckedCell<T> {
     ///
     /// # Errors
     ///
-    /// Forwards errors from the closure if the cell is not yet initialized.
+    /// Forwards any error from the closure if the cell is not yet initialized.
+    /// The cell then remains uninitialized.
     ///
     /// # Panics
     ///
