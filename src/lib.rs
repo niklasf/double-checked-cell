@@ -194,6 +194,9 @@ impl<T> DoubleCheckedCell<T> {
     pub fn get_or_try_init<F, E>(&self, init: F) -> Result<&T, E>
         where F: FnOnce() -> Result<T, E>
     {
+        // Safety comes down to the double checked locking here. All other
+        // borrowing methods are implemented by calling this.
+
         if !self.initialized.load(Ordering::Acquire) {
             let _lock = self.lock.lock().unwrap();
 
