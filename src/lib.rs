@@ -6,6 +6,61 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! A thread-safe lazily initialized cell using double-checked locking.
+//!
+//! Provides a memory location that can be safely shared between threads and
+//! initialized at most once. Once the cell is initialized it becomes
+//! immutable.
+//!
+//! If you do not need to change the value after initialization
+//! `DoubleCheckedCell<T>` is more efficient than a `Mutex<Option<T>>`.
+//!
+//! # Examples
+//!
+//! ```
+//! use double_checked_cell::DoubleCheckedCell;
+//!
+//! let cell = DoubleCheckedCell::new();
+//!
+//! // The cell starts uninitialized.
+//! assert_eq!(cell.get(), None);
+//!
+//! // Perform potentially expensive initialization.
+//! let value = cell.get_or_init(|| 21 + 21);
+//! assert_eq!(*value, 42);
+//! assert_eq!(cell.get(), Some(&42));
+//!
+//! // The cell is already initialized.
+//! let value = cell.get_or_init(|| {
+//!     panic!("initilization does not run again")
+//! });
+//! assert_eq!(*value, 42);
+//! assert_eq!(cell.get(), Some(&42));
+//! ```
+//!
+//! # Poisoning
+//!
+//! `DoubleCheckedCell` is unwind safe by implementing "poisoning". If an
+//! initilization closure is executed and panics, the `DoubleCheckedCell`
+//! becomes poisoned. Any subsequent reads will then also panic.
+//!
+//! ```
+//! use std::panic;
+//! use double_checked_cell::DoubleCheckedCell;
+//!
+//! let cell = DoubleCheckedCell::new();
+//!
+//! // Cell gets poisoned.
+//! assert!(panic::catch_unwind(|| {
+//!     cell.get_or_init(|| panic!("oh no!"));
+//! }).is_err());
+//!
+//! // Now it is poisoned forever.
+//! assert!(panic::catch_unwind(|| {
+//!     cell.get_or_init(|| true);
+//! }).is_err());
+//! ```
+
 #![warn(missing_debug_implementations)]
 
 extern crate void;
@@ -20,6 +75,10 @@ use std::fmt;
 use void::ResultVoidExt;
 use unreachable::UncheckedOptionExt;
 
+/// A thread-safe lazily initialized cell.
+///
+/// The cell is immutable once it is initialized.
+/// See the [module-level documentation](index.html) for more.
 pub struct DoubleCheckedCell<T> {
     initialized: AtomicBool,
     lock: Mutex<()>,
@@ -44,10 +103,6 @@ impl<T: fmt::Debug> fmt::Debug for DoubleCheckedCell<T> {
     }
 }
 
-/// A thread-safe lazily initialized cell.
-///
-/// The cell is immutable once it is initialized.
-/// See the [module-level documentation](index.html) for more.
 impl<T> DoubleCheckedCell<T> {
     /// Creates a new uninitialized `DoubleCheckedCell`.
     ///
@@ -65,6 +120,10 @@ impl<T> DoubleCheckedCell<T> {
 
     /// Borrows the value if the cell is initialized.
     ///
+    /// # Panics
+    ///
+    /// Panics if the cell is [poisoned](index.html#poisoning).
+    ///
     /// # Examples
     ///
     /// ```
@@ -79,6 +138,10 @@ impl<T> DoubleCheckedCell<T> {
 
     /// Borrows the value if the cell is initialized or initializes it from
     /// a closure.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the cell is [poisoned](index.html#poisoning).
     ///
     /// # Examples
     ///
@@ -101,6 +164,33 @@ impl<T> DoubleCheckedCell<T> {
         self.get_or_try_init(|| Ok(init())).void_unwrap()
     }
 
+    /// Borrows the value if the cell is initializes or attempts to initialize
+    /// it from a closure.
+    ///
+    /// # Errors
+    ///
+    /// Forwards errors from the closure if the cell is not yet initialized.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the cell is [poisoned](index.html#poisoning).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use double_checked_cell::DoubleCheckedCell;
+    ///
+    /// let cell = DoubleCheckedCell::new();
+    ///
+    /// let result = cell.get_or_try_init(|| "not an integer".parse());
+    /// assert!(result.is_err());
+    ///
+    /// let result = cell.get_or_try_init(|| "42".parse());
+    /// assert_eq!(result, Ok(&42));
+    ///
+    /// let result = cell.get_or_try_init(|| "irrelevant".parse());
+    /// assert_eq!(result, Ok(&42));
+    /// ```
     pub fn get_or_try_init<F, E>(&self, init: F) -> Result<&T, E>
         where F: FnOnce() -> Result<T, E>
     {
@@ -160,25 +250,9 @@ mod tests {
     use super::*;
 
     use std::sync::atomic::AtomicUsize;
-    use std::panic;
     use std::rc::Rc;
 
     use scoped_pool::Pool;
-
-    #[test]
-    fn test_poison() {
-        let cell = DoubleCheckedCell::new();
-
-        // Poison the cell.
-        assert!(panic::catch_unwind(|| {
-            cell.get_or_init(|| panic!("oh no!"));
-        }).is_err());
-
-        // Now it is poisoned forever.
-        assert!(panic::catch_unwind(|| {
-            cell.get_or_init(|| true)
-        }).is_err());
-    }
 
     #[test]
     fn test_drop() {
