@@ -63,37 +63,18 @@ impl<T> DoubleCheckedCell<T> {
         Self::default()
     }
 
-    /// Unwraps the value.
+    /// Borrows the value if the cell is initialized.
     ///
     /// # Examples
     ///
     /// ```
     /// use double_checked_cell::DoubleCheckedCell;
     ///
-    /// let cell = DoubleCheckedCell::from(42);
-    /// let contents = cell.into_inner();
-    /// assert_eq!(contents, Some(42));
+    /// let cell = DoubleCheckedCell::from("hello");
+    /// assert_eq!(cell.get(), Some(&"hello"));
     /// ```
-    pub fn into_inner(self) -> Option<T> {
-        // This method consumes self. Therefore no references can be around.
-        unsafe { self.value.into_inner() }
-    }
-
-    pub fn get_or_try_init<F, E>(&self, init: F) -> Result<&T, E>
-        where F: FnOnce() -> Result<T, E>
-    {
-        if !self.initialized.load(Ordering::Acquire) {
-            let _lock = self.lock.lock().unwrap();
-
-            if !self.initialized.load(Ordering::Relaxed) {
-                let value = unsafe { &mut *self.value.get() };
-                *value = Some(init()?);
-                self.initialized.store(true, Ordering::Release);
-            }
-        }
-
-        let value = unsafe { &*self.value.get() };
-        Ok(unsafe { value.as_ref().unchecked_unwrap() })
+    pub fn get(&self) -> Option<&T> {
+        self.get_or_try_init(|| Err(())).ok()
     }
 
     /// Borrows the value if the cell is initialized or initializes it from
@@ -120,18 +101,37 @@ impl<T> DoubleCheckedCell<T> {
         self.get_or_try_init(|| Ok(init())).void_unwrap()
     }
 
-    /// Borrows the value if the cell is initialized.
+    pub fn get_or_try_init<F, E>(&self, init: F) -> Result<&T, E>
+        where F: FnOnce() -> Result<T, E>
+    {
+        if !self.initialized.load(Ordering::Acquire) {
+            let _lock = self.lock.lock().unwrap();
+
+            if !self.initialized.load(Ordering::Relaxed) {
+                let value = unsafe { &mut *self.value.get() };
+                *value = Some(init()?);
+                self.initialized.store(true, Ordering::Release);
+            }
+        }
+
+        let value = unsafe { &*self.value.get() };
+        Ok(unsafe { value.as_ref().unchecked_unwrap() })
+    }
+
+    /// Unwraps the value.
     ///
     /// # Examples
     ///
     /// ```
     /// use double_checked_cell::DoubleCheckedCell;
     ///
-    /// let cell = DoubleCheckedCell::from("hello");
-    /// assert_eq!(cell.get(), Some(&"hello"));
+    /// let cell = DoubleCheckedCell::from(42);
+    /// let contents = cell.into_inner();
+    /// assert_eq!(contents, Some(42));
     /// ```
-    pub fn get(&self) -> Option<&T> {
-        self.get_or_try_init(|| Err(())).ok()
+    pub fn into_inner(self) -> Option<T> {
+        // This method consumes self. Therefore no references can be around.
+        unsafe { self.value.into_inner() }
     }
 }
 
