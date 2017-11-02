@@ -6,6 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+#![warn(missing_debug_implementations)]
+
 extern crate void;
 extern crate unreachable;
 
@@ -13,6 +15,7 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::cell::UnsafeCell;
 use std::panic::RefUnwindSafe;
+use std::fmt;
 
 use void::ResultVoidExt;
 use unreachable::UncheckedOptionExt;
@@ -30,6 +33,14 @@ impl<T> Default for DoubleCheckedCell<T> {
             lock: Mutex::new(()),
             value: UnsafeCell::new(None),
         }
+    }
+}
+
+impl<T: fmt::Debug> fmt::Debug for DoubleCheckedCell<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("DoubleCheckedCell")
+            .field("value", &self.get())
+            .finish()
     }
 }
 
