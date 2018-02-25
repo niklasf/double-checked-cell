@@ -88,11 +88,10 @@
 //! ```
 
 #![doc(html_root_url = "https://docs.rs/double-checked-cell/1.0.0")]
-
 #![warn(missing_debug_implementations)]
 
-extern crate void;
 extern crate unreachable;
+extern crate void;
 
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -187,7 +186,8 @@ impl<T> DoubleCheckedCell<T> {
     /// assert_eq!(*value, 3);
     /// ```
     pub fn get_or_init<F>(&self, init: F) -> &T
-        where F: FnOnce() -> T
+    where
+        F: FnOnce() -> T,
     {
         self.get_or_try_init(|| Ok(init())).void_unwrap()
     }
@@ -221,7 +221,8 @@ impl<T> DoubleCheckedCell<T> {
     /// assert_eq!(result, Ok(&42));
     /// ```
     pub fn get_or_try_init<F, E>(&self, init: F) -> Result<&T, E>
-        where F: FnOnce() -> Result<T, E>
+    where
+        F: FnOnce() -> Result<T, E>,
     {
         // Safety comes down to the double checked locking here. All other
         // borrowing methods are implemented by calling this.
@@ -277,11 +278,11 @@ impl<T> From<T> for DoubleCheckedCell<T> {
 }
 
 // The internal state is only mutated while holding a mutex.
-unsafe impl<T: Sync> Sync for DoubleCheckedCell<T> { }
+unsafe impl<T: Sync> Sync for DoubleCheckedCell<T> {}
 
 // A panic during initialization will poison the interal mutex, thereby
 // poisoning the cell itself.
-impl<T> RefUnwindSafe for DoubleCheckedCell<T> { }
+impl<T> RefUnwindSafe for DoubleCheckedCell<T> {}
 
 #[cfg(test)]
 extern crate scoped_pool;
@@ -335,8 +336,8 @@ mod tests {
 
     #[test]
     fn test_sync_send() {
-        fn assert_sync<T: Sync>(_: T) { }
-        fn assert_send<T: Send>(_: T) { }
+        fn assert_sync<T: Sync>(_: T) {}
+        fn assert_send<T: Send>(_: T) {}
 
         assert_sync(DoubleCheckedCell::<usize>::new());
         assert_send(DoubleCheckedCell::<usize>::new());
