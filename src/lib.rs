@@ -262,7 +262,9 @@ impl<T> DoubleCheckedCell<T> {
     /// assert_eq!(contents, Some(42));
     /// ```
     pub fn into_inner(self) -> Option<T> {
-        // This method consumes self. Therefore no references can be around.
+        // into_inner() is actually unconditionally safe:
+        // https://github.com/rust-lang/rust/issues/35067
+        #[allow(unused_unsafe)]
         unsafe { self.value.into_inner() }
     }
 }
