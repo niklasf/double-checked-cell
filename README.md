@@ -57,6 +57,9 @@ Documentation
 Changelog
 ---------
 
+* 1.0.1
+  - Ignore `unused_unsafe` warning due to `UnsafeCell::into_inner()` no longer
+    beeing unsafe.
 * 1.0.0
   - Initial release.
 

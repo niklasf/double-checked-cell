@@ -87,7 +87,7 @@
 //! }).is_err());
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/double-checked-cell/1.0.0")]
+#![doc(html_root_url = "https://docs.rs/double-checked-cell/1.0.1")]
 #![warn(missing_debug_implementations)]
 
 extern crate unreachable;
