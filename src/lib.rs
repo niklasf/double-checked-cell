@@ -12,8 +12,8 @@
 //! initialized at most once. Once the cell is initialized it becomes
 //! immutable.
 //!
-//! If you do not need to change the value after initialization
-//! `DoubleCheckedCell<T>` is more efficient than a `Mutex<Option<T>>`.
+//! You can only initialize a `DoubleCheckedCell<T>` once, but then it is
+//! more efficient than a `Mutex<Option<T>>`.
 //!
 //! # Examples
 //!
