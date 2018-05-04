@@ -87,7 +87,7 @@
 //! }).is_err());
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/double-checked-cell/1.0.1")]
+#![doc(html_root_url = "https://docs.rs/double-checked-cell/1.1.0")]
 #![warn(missing_debug_implementations)]
 
 extern crate unreachable;
@@ -279,8 +279,14 @@ impl<T> From<T> for DoubleCheckedCell<T> {
     }
 }
 
-// The internal state is only mutated while holding a mutex.
-unsafe impl<T: Sync> Sync for DoubleCheckedCell<T> {}
+// The internal state of the DoubleCheckedCell is only mutated while holding
+// a mutex, so we only need to consider T.
+//
+// We need T: Send, because we can initialize a DoubleCheckedCell, transfer
+// it to another thread and unpack it there.
+// We trivially need T: Sync, because a reference to the contents can be
+// retrieved on multiple threads.
+unsafe impl<T: Send + Sync> Sync for DoubleCheckedCell<T> {}
 
 // A panic during initialization will poison the interal mutex, thereby
 // poisoning the cell itself.

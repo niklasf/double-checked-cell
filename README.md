@@ -57,6 +57,8 @@ Documentation
 Changelog
 ---------
 
+* 1.1.0
+  - Fix unsoundness: `DoubleCheckedCell<T>` where `T: !Send` cannot be `Sync`.
 * 1.0.1
   - Ignore `unused_unsafe` warning due to `UnsafeCell::into_inner()` no longer
     beeing unsafe.
