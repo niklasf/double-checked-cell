@@ -1,4 +1,4 @@
-// Copyright 2017 Niklas Fiekas <niklas.fiekas@backscattering.de>
+// Copyright 2017-2018 Niklas Fiekas <niklas.fiekas@backscattering.de>
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -288,7 +288,7 @@ impl<T> From<T> for DoubleCheckedCell<T> {
 // retrieved on multiple threads.
 unsafe impl<T: Send + Sync> Sync for DoubleCheckedCell<T> {}
 
-// A panic during initialization will poison the interal mutex, thereby
+// A panic during initialization will poison the internal mutex, thereby
 // poisoning the cell itself.
 impl<T> RefUnwindSafe for DoubleCheckedCell<T> {}
 
