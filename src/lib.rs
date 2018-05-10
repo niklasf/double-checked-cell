@@ -282,8 +282,8 @@ impl<T> From<T> for DoubleCheckedCell<T> {
 // The internal state of the DoubleCheckedCell is only mutated while holding
 // a mutex, so we only need to consider T.
 //
-// We need T: Send, because we can initialize a DoubleCheckedCell, transfer
-// it to another thread and unpack it there.
+// We need T: Send, because we can share a DoubleCheckedCell with another
+// thread, initialize it there and unpack it on the original thread.
 // We trivially need T: Sync, because a reference to the contents can be
 // retrieved on multiple threads.
 unsafe impl<T: Send + Sync> Sync for DoubleCheckedCell<T> {}
