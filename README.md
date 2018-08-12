@@ -49,6 +49,11 @@ These crates are similar but distinct by design:
 
 * [lazy-init](https://crates.io/crates/lazy-init) – Based on a `LazyTransform<T, U>` which can lazily consume `T` to produce an `U`. Therefore can not support fallible initialization.
 * [lazycell](https://crates.io/crates/lazycell) – `AtomicLazyCell` does not support lazy initialization (unlike its non-thread-safe counterpart `LazyCell` using `LazyCell::borrow_with()`).
+* [mitochondria](https://crates.io/crates/mitochondria) – Not `Sync`.
+
+This newer crate provides the same functionality:
+
+* [once_cell](https://crates.io/crates/once_cell)
 
 Documentation
 -------------
