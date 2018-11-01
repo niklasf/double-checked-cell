@@ -415,11 +415,14 @@ mod tests {
     #[cfg(feature = "const_fn")]
     #[test]
     fn test_static_cell() {
-        static STATIC_CELL: DoubleCheckedCell<u32> = DoubleCheckedCell::new();
+        fn wrapper(v: u32) -> u32 {
+            static STATIC_CELL: DoubleCheckedCell<u32> = DoubleCheckedCell::new();
+            *STATIC_CELL.get_or_init(|| v)
+        }
 
-        assert!(STATIC_CELL.get().is_none());
-        assert_eq!(*STATIC_CELL.get_or_init(|| 123), 123);
-        assert_eq!(*STATIC_CELL.get_or_init(|| 321), 123);
+        assert_eq!(wrapper(1), 1);
+        assert_eq!(wrapper(2), 1);
+        assert_eq!(wrapper(3), 1);
     }
 
     struct _AssertObjectSafe(Box<DoubleCheckedCell<usize>>);
