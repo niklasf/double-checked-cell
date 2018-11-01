@@ -7,7 +7,7 @@ addons:
      - libelf-dev
      - libdw-dev
 rust:
- - 1.15.0
+ - 1.27.0
  - stable
  - beta
  - nightly
@@ -16,5 +16,5 @@ before_script:
  - export PATH=$HOME/.local/bin:$PATH
 script:
  - travis-cargo test
- - travis-cargo test --features parking_lot_mutex
- - travis-cargo --only nightly test --features const_fn
+ - travis-cargo test -- --features parking_lot_mutex
+ - travis-cargo --only nightly test -- --features const_fn
