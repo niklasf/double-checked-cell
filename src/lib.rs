@@ -186,6 +186,12 @@ impl<T> DoubleCheckedCell<T> {
     /// Borrows the value if the cell is initialized or initializes it from
     /// a closure.
     ///
+    /// # Panics
+    ///
+    /// Panics or deadlocks when trying to access the cell from the
+    /// initilization closure.
+    ///
+    ///
     /// # Examples
     ///
     /// ```
@@ -215,6 +221,11 @@ impl<T> DoubleCheckedCell<T> {
     ///
     /// Forwards any error from the closure if the cell is not yet initialized.
     /// The cell then remains uninitialized.
+    ///
+    /// # Panics
+    ///
+    /// Panics or deadlocks when trying to access the cell from the
+    /// initilization closure.
     ///
     /// # Examples
     ///
