@@ -64,11 +64,10 @@
 //! assert_eq!(cell.get(), None);
 //! ```
 //!
-//! # Poisoning
+//! # Unwind safety
 //!
-//! `DoubleCheckedCell` achieves unwind safety by implementing "poisoning".
-//! If an initilization closure is executed and panics, the `DoubleCheckedCell`
-//! becomes poisoned. Any subsequent reads will then also panic.
+//! If an initialization closure panics, the `DoubleCheckedCell` remains
+//! uninitialized. Initialization can be retried later, there is no poisoning.
 //!
 //! ```
 //! use std::panic;
@@ -76,15 +75,13 @@
 //!
 //! let cell = DoubleCheckedCell::new();
 //!
-//! // Cell gets poisoned.
+//! // Panic during initialization.
 //! assert!(panic::catch_unwind(|| {
 //!     cell.get_or_init(|| panic!("oh no!"));
 //! }).is_err());
 //!
-//! // Now it is poisoned forever.
-//! assert!(panic::catch_unwind(|| {
-//!     cell.get_or_init(|| true);
-//! }).is_err());
+//! // Cell remains uninitialized.
+//! assert!(cell.get().is_none());
 //! ```
 
 #![doc(html_root_url = "https://docs.rs/double-checked-cell/1.1.0")]
@@ -147,10 +144,6 @@ impl<T> DoubleCheckedCell<T> {
 
     /// Borrows the value if the cell is initialized.
     ///
-    /// # Panics
-    ///
-    /// Panics if the cell is [poisoned](index.html#poisoning).
-    ///
     /// # Examples
     ///
     /// ```
@@ -165,10 +158,6 @@ impl<T> DoubleCheckedCell<T> {
 
     /// Borrows the value if the cell is initialized or initializes it from
     /// a closure.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the cell is [poisoned](index.html#poisoning).
     ///
     /// # Examples
     ///
@@ -200,10 +189,6 @@ impl<T> DoubleCheckedCell<T> {
     /// Forwards any error from the closure if the cell is not yet initialized.
     /// The cell then remains uninitialized.
     ///
-    /// # Panics
-    ///
-    /// Panics if the cell is [poisoned](index.html#poisoning).
-    ///
     /// # Examples
     ///
     /// ```
@@ -228,7 +213,7 @@ impl<T> DoubleCheckedCell<T> {
         // borrowing methods are implemented by calling this.
 
         if !self.initialized.load(Ordering::Acquire) {
-            let _lock = self.lock.lock().unwrap();
+            let _lock = self.lock.lock().unwrap_or_else(|poison| poison.into_inner());
 
             if !self.initialized.load(Ordering::Relaxed) {
                 // There are no shared references to value because it is
@@ -288,8 +273,8 @@ impl<T> From<T> for DoubleCheckedCell<T> {
 // retrieved on multiple threads.
 unsafe impl<T: Send + Sync> Sync for DoubleCheckedCell<T> {}
 
-// A panic during initialization will poison the internal mutex, thereby
-// poisoning the cell itself.
+// A panic during initialization will leave the cell in a valid, uninitialized
+// state.
 impl<T> RefUnwindSafe for DoubleCheckedCell<T> {}
 
 #[cfg(test)]
