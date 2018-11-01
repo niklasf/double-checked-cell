@@ -89,8 +89,9 @@
 
 extern crate unreachable;
 extern crate void;
+#[cfg(feature = "parking_lot_mutex")]
+extern crate parking_lot;
 
-use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::cell::UnsafeCell;
 use std::panic::RefUnwindSafe;
@@ -104,9 +105,12 @@ use unreachable::UncheckedOptionExt;
 /// The cell is immutable once it is initialized.
 /// See the [module-level documentation](index.html) for more.
 pub struct DoubleCheckedCell<T> {
-    initialized: AtomicBool,
-    lock: Mutex<()>,
     value: UnsafeCell<Option<T>>,
+    initialized: AtomicBool,
+    #[cfg(not(feature = "parking_lot_mutex"))]
+    lock: std::sync::Mutex<()>,
+    #[cfg(feature = "parking_lot_mutex")]
+    lock: parking_lot::Mutex<()>,
 }
 
 impl<T> Default for DoubleCheckedCell<T> {
@@ -134,11 +138,34 @@ impl<T> DoubleCheckedCell<T> {
     /// let cell = DoubleCheckedCell::<u32>::new();
     /// assert_eq!(cell.get(), None);
     /// ```
+    #[cfg(not(feature = "const_fn"))]
     pub fn new() -> DoubleCheckedCell<T> {
         DoubleCheckedCell {
-            initialized: AtomicBool::new(false),
-            lock: Mutex::new(()),
             value: UnsafeCell::new(None),
+            initialized: AtomicBool::new(false),
+            #[cfg(not(feature = "parking_lot_mutex"))]
+            lock: std::sync::Mutex::new(()),
+            #[cfg(feature = "parking_lot_mutex")]
+            lock: parking_lot::Mutex::new(()),
+        }
+    }
+
+    /// Creates a new uninitialized `DoubleCheckedCell`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use double_checked_cell::DoubleCheckedCell;
+    ///
+    /// let cell = DoubleCheckedCell::<u32>::new();
+    /// assert_eq!(cell.get(), None);
+    /// ```
+    #[cfg(feature = "const_fn")]
+    pub const fn new() -> DoubleCheckedCell<T> {
+        DoubleCheckedCell {
+            value: UnsafeCell::new(None),
+            initialized: AtomicBool::new(false),
+            lock: parking_lot::Mutex::new(()),
         }
     }
 
@@ -213,7 +240,10 @@ impl<T> DoubleCheckedCell<T> {
         // borrowing methods are implemented by calling this.
 
         if !self.initialized.load(Ordering::Acquire) {
+            #[cfg(not(feature = "parking_lot_mutex"))]
             let _lock = self.lock.lock().unwrap_or_else(|poison| poison.into_inner());
+            #[cfg(feature = "parking_lot_mutex")]
+            let _lock = self.lock.lock();
 
             if !self.initialized.load(Ordering::Relaxed) {
                 // There are no shared references to value because it is
@@ -256,11 +286,9 @@ impl<T> DoubleCheckedCell<T> {
 
 impl<T> From<T> for DoubleCheckedCell<T> {
     fn from(t: T) -> DoubleCheckedCell<T> {
-        DoubleCheckedCell {
-            initialized: AtomicBool::new(true),
-            lock: Mutex::new(()),
-            value: UnsafeCell::new(Some(t)),
-        }
+        let cell = DoubleCheckedCell::new();
+        cell.get_or_init(|| t);
+        cell
     }
 }
 
@@ -334,6 +362,16 @@ mod tests {
 
         assert_sync(DoubleCheckedCell::<usize>::new());
         assert_send(DoubleCheckedCell::<usize>::new());
+    }
+
+    #[cfg(feature = "const_fn")]
+    #[test]
+    fn test_global_cell() {
+        static STATIC_CELL: DoubleCheckedCell<u32> = DoubleCheckedCell::new();
+
+        assert!(STATIC_CELL.get().is_none());
+        assert_eq!(*GLOBAL_CELL.get_or_init(|| 123), 123);
+        assert_eq!(*GLOBAL_CELL.get_or_init(|| 321), 123);
     }
 
     struct _AssertObjectSafe(Box<DoubleCheckedCell<usize>>);
