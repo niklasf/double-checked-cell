@@ -264,26 +264,48 @@ impl<T> DoubleCheckedCell<T> {
         // borrowing methods are implemented by calling this.
 
         if !self.initialized.load(Ordering::Acquire) {
+            // Lock the internal mutex.
             #[cfg(not(feature = "parking_lot_mutex"))]
             let _lock = self.lock.lock().unwrap_or_else(|poison| poison.into_inner());
             #[cfg(feature = "parking_lot_mutex")]
             let _lock = self.lock.lock();
 
             if !self.initialized.load(Ordering::Relaxed) {
-                // There are no shared references to value because it is
-                // not yet initialized.
-                // There are no mutable references to value because we are
-                // holding a mutex.
-                let value = unsafe { &mut *self.value.get() };
-                *value = Some(init()?);
+                // We claim that it is safe to make a mutable reference to
+                // `self.value` because no other references exist. The only
+                // places that could have taken another reference are
+                // (A) and (B).
+                //
+                // We will be the only one holding a mutable reference, because
+                // we are holding a mutex. The mutex guard lives longer
+                // than the reference taken at (A).
+                //
+                // No thread could have reached (B) yet, because that implies
+                // the cell is already initialized. When we last checked the
+                // cell was not yet initialized, and no one else could have
+                // initialized it, because that requires holding the mutex.
+                {
+                    let value = unsafe { &mut *self.value.get() }; // (A)
+
+                    // Consider all possible control flows:
+                    // - init returns Ok(T)
+                    // - init returns Err(E)
+                    // - init recursively tries to initialize the cell
+                    // - init panics
+                    *value = Some(init()?);
+                }
+
                 self.initialized.store(true, Ordering::Release);
             }
         }
 
-        // The only place that takes a mutable reference is inside the double
-        // checked scope above. But the value is guaranteed to be initialized,
-        // therefore no one can hold a mutable reference.
-        let value = unsafe { &*self.value.get() };
+        // The cell is now guaranteed to be initialized.
+
+        // We claim that it is safe to take a shared reference of `self.value`.
+        // The only place that could have created a conflicting mutable
+        // reference is (A). But no one can be in that scope while the cell
+        // is already initialized.
+        let value = unsafe { &*self.value.get() }; // (B)
 
         // Value is guaranteed to be initialized.
         Ok(unsafe { value.as_ref().unchecked_unwrap() })
@@ -316,6 +338,8 @@ impl<T> From<T> for DoubleCheckedCell<T> {
     }
 }
 
+// Can DoubleCheckedCell<T> be Sync?
+//
 // The internal state of the DoubleCheckedCell is only mutated while holding
 // a mutex, so we only need to consider T.
 //
