@@ -59,6 +59,10 @@ Documentation
 Changelog
 ---------
 
+* 2.0.0
+  - Changed unwinding behavior: `DoubleCheckedCell` no longer implements
+    poisoning.
+  - New optional cargo features: `parking_lot_mutex`, `const_fn`.
 * 1.1.0
   - Fix unsoundness: `DoubleCheckedCell<T>` where `T: !Send` cannot be `Sync`.
 * 1.0.1

@@ -97,7 +97,7 @@
 //!   static LAZY_STATIC: DoubleCheckedCell<u32> = DoubleCheckedCell::new();
 //!   ```
 
-#![doc(html_root_url = "https://docs.rs/double-checked-cell/1.1.0")]
+#![doc(html_root_url = "https://docs.rs/double-checked-cell/2.0.0")]
 #![warn(missing_debug_implementations)]
 
 extern crate unreachable;
