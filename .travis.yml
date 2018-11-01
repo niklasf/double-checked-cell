@@ -14,6 +14,7 @@ rust:
 before_script:
  - pip install 'travis-cargo<0.2' --user
  - export PATH=$HOME/.local/bin:$PATH
+ - export TRAVIS_CARGO_NIGHTLY_FEATURE=
 script:
  - travis-cargo test
  - travis-cargo test -- --features parking_lot_mutex
