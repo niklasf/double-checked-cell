@@ -50,6 +50,7 @@ These crates are similar but distinct by design:
 * [lazycell](https://crates.io/crates/lazycell) – `AtomicLazyCell` does not support lazy initialization (unlike its non-thread-safe counterpart `LazyCell` using `LazyCell::borrow_with()`).
 * [mitochondria](https://crates.io/crates/mitochondria) – Not `Sync`.
 * [once_cell](https://crates.io/crates/once_cell) - Based on `std::sync::Once`. Therefore cannot support fallible initialization.
+* [lazy_static](https://crates.io/crates/lazy_static) - With the optional (currently nightly only) `const_fn` feature `DoubleCheckedCell::new()` can also be used in static/const context. However `lazy_static!` is more convenient when there is only a single way to initialize the cell.
 
 Documentation
 -------------
