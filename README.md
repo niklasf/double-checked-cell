@@ -33,9 +33,7 @@ fn main() {
     assert_eq!(cell.get(), Some(&42));
 
     // The cell is already initialized.
-    let value = cell.get_or_init(|| {
-        panic!("initilization does not run again")
-    });
+    let value = cell.get_or_init(|| unreachable!());
     assert_eq!(*value, 42);
     assert_eq!(cell.get(), Some(&42));
 }
