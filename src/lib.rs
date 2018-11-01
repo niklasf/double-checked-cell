@@ -366,12 +366,12 @@ mod tests {
 
     #[cfg(feature = "const_fn")]
     #[test]
-    fn test_global_cell() {
+    fn test_static_cell() {
         static STATIC_CELL: DoubleCheckedCell<u32> = DoubleCheckedCell::new();
 
         assert!(STATIC_CELL.get().is_none());
-        assert_eq!(*GLOBAL_CELL.get_or_init(|| 123), 123);
-        assert_eq!(*GLOBAL_CELL.get_or_init(|| 321), 123);
+        assert_eq!(*STATIC_CELL.get_or_init(|| 123), 123);
+        assert_eq!(*STATIC_CELL.get_or_init(|| 321), 123);
     }
 
     struct _AssertObjectSafe(Box<DoubleCheckedCell<usize>>);
