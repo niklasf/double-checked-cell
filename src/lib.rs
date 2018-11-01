@@ -83,6 +83,19 @@
 //! // Cell remains uninitialized.
 //! assert!(cell.get().is_none());
 //! ```
+//!
+//! # Cargo features
+//!
+//! * `parking_lot_mutex`: Internally use mutexes backed by
+//!   [parking_lot](https://crates.io/crates/parking_lot). Optional.
+//! * `const_fn`: Allows instanciating `DoubleCheckedCell` in const context.
+//!   Can be used as a replacement for
+//!   [lazy_static](https://crates.io/crates/lazy_static).
+//!   Currently nightly only. Optional.
+//!
+//!   ```rust,ignore
+//!   static LAZY_STATIC: DoubleCheckedCell<u32> = DoubleCheckedCell::new();
+//!   ```
 
 #![doc(html_root_url = "https://docs.rs/double-checked-cell/1.1.0")]
 #![warn(missing_debug_implementations)]
