@@ -58,6 +58,8 @@ Documentation
 Changelog
 ---------
 
+* 2.0.1
+  - Update to parking_lot 0.7.
 * 2.0.0
   - Changed unwinding behavior: `DoubleCheckedCell` no longer implements
     poisoning.
