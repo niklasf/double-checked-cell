@@ -98,18 +98,18 @@
 #![doc(html_root_url = "https://docs.rs/double-checked-cell/2.0.0")]
 #![warn(missing_debug_implementations)]
 
-extern crate unreachable;
-extern crate void;
 #[cfg(feature = "parking_lot_mutex")]
 extern crate parking_lot;
+extern crate unreachable;
+extern crate void;
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::cell::UnsafeCell;
-use std::panic::RefUnwindSafe;
 use std::fmt;
+use std::panic::RefUnwindSafe;
+use std::sync::atomic::{AtomicBool, Ordering};
 
-use void::ResultVoidExt;
 use unreachable::UncheckedOptionExt;
+use void::ResultVoidExt;
 
 /// A thread-safe lazily initialized cell.
 ///
@@ -358,8 +358,8 @@ extern crate scoped_pool;
 mod tests {
     use super::*;
 
-    use std::sync::atomic::AtomicUsize;
     use std::rc::Rc;
+    use std::sync::atomic::AtomicUsize;
 
     use scoped_pool::Pool;
 
