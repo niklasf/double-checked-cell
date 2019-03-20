@@ -7,7 +7,6 @@ addons:
      - libelf-dev
      - libdw-dev
 rust:
- - 1.27.0
  - stable
  - beta
  - nightly
