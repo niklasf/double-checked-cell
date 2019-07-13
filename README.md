@@ -6,7 +6,7 @@ A thread-safe lazily initialized cell using double-checked locking.
 [![Build Status](https://travis-ci.org/niklasf/double-checked-cell.svg?branch=master)](https://travis-ci.org/niklasf/double-checked-cell)
 [![crates.io](https://img.shields.io/crates/v/double-checked-cell.svg)](https://crates.io/crates/double-checked-cell)
 [![docs.rs](https://docs.rs/double-checked-cell/badge.svg)](https://docs.rs/double-checked-cell)
-![Passively maintained](https://img.shields.io/badge/passively%20maintained-x-yellow.svg)
+![Passively maintained](https://img.shields.io/badge/passively%20maintained-x-yellow.svg)[]()
 
 Introduction
 ------------
