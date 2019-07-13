@@ -6,6 +6,7 @@ A thread-safe lazily initialized cell using double-checked locking.
 [![Build Status](https://travis-ci.org/niklasf/double-checked-cell.svg?branch=master)](https://travis-ci.org/niklasf/double-checked-cell)
 [![crates.io](https://img.shields.io/crates/v/double-checked-cell.svg)](https://crates.io/crates/double-checked-cell)
 [![docs.rs](https://docs.rs/double-checked-cell/badge.svg)](https://docs.rs/double-checked-cell)
+![Passively maintained](https://img.shields.io/badge/passively%20maintained-x-yellow.svg)
 
 Introduction
 ------------
@@ -42,12 +43,13 @@ fn main() {
 Related crates
 --------------
 
+* [once_cell](https://crates.io/crates/once_cell) - Provides a superset of this crate's functionality, with a nicely consistent API. Uses `parking_lot` to support fallible initialization.
+
 These crates are similar but distinct by design:
 
 * [lazy-init](https://crates.io/crates/lazy-init) – Based on a `LazyTransform<T, U>` which can lazily consume `T` to produce an `U`. Therefore cannot support fallible initialization.
 * [lazycell](https://crates.io/crates/lazycell) – `AtomicLazyCell` does not support lazy initialization (unlike its non-thread-safe counterpart `LazyCell` using `LazyCell::borrow_with()`).
 * [mitochondria](https://crates.io/crates/mitochondria) – Not `Sync`.
-* [once_cell](https://crates.io/crates/once_cell) - Based on `std::sync::Once`. Therefore cannot support fallible initialization.
 * [lazy_static](https://crates.io/crates/lazy_static) - With the optional (currently nightly only) `const_fn` feature, `DoubleCheckedCell::new()` can also be used in static/const context. However `lazy_static!` is more convenient when there is only a single way to initialize the cell.
 
 Documentation
