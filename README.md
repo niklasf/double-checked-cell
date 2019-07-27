@@ -60,6 +60,8 @@ Documentation
 Changelog
 ---------
 
+* 2.0.2
+  - Update to parking_lot 0.9.
 * 2.0.1
   - Update to parking_lot 0.7.
 * 2.0.0
