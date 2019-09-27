@@ -43,7 +43,7 @@ fn main() {
 Related crates
 --------------
 
-* [once_cell](https://crates.io/crates/once_cell) - Provides a superset of this crate's functionality, with a nicely consistent API. Uses `parking_lot` to support fallible initialization.
+* [once_cell](https://crates.io/crates/once_cell) - Provides a superset of this crate's functionality, with a nicely consistent API.
 
 These crates are similar but distinct by design:
 
