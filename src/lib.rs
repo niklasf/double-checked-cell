@@ -95,7 +95,7 @@
 //!   static LAZY_STATIC: DoubleCheckedCell<u32> = DoubleCheckedCell::new();
 //!   ```
 
-#![doc(html_root_url = "https://docs.rs/double-checked-cell/2.0.2")]
+#![doc(html_root_url = "https://docs.rs/double-checked-cell/2.0.3")]
 #![warn(missing_debug_implementations)]
 
 #[cfg(feature = "parking_lot_mutex")]

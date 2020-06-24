@@ -1,6 +1,6 @@
 [package]
 name = "double-checked-cell"
-version = "2.0.2" # remember to update html_root_url
+version = "2.0.3" # remember to update html_root_url
 authors = ["Niklas Fiekas <niklas.fiekas@backscattering.de>"]
 license = "MIT/Apache-2.0"
 keywords = ["lazy", "cell", "once"]
