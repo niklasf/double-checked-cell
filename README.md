@@ -67,6 +67,9 @@ Documentation
 Changelog
 ---------
 
+* 2.1.0
+  - Fix `UnwindSafe` and `RefUnwindSafe` bounds. This is technically a breaking
+    change, but published under the same major version because it is a bugfix.
 * 2.0.3
   - Update to parking_lot 0.11.
 * 2.0.2
