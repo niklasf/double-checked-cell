@@ -105,7 +105,7 @@ extern crate void;
 
 use std::cell::UnsafeCell;
 use std::fmt;
-use std::panic::RefUnwindSafe;
+use std::panic::{UnwindSafe, RefUnwindSafe};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use unreachable::UncheckedOptionExt;
@@ -349,7 +349,8 @@ unsafe impl<T: Send + Sync> Sync for DoubleCheckedCell<T> {}
 
 // A panic during initialization will leave the cell in a valid, uninitialized
 // state.
-impl<T> RefUnwindSafe for DoubleCheckedCell<T> {}
+impl<T: RefUnwindSafe + UnwindSafe> RefUnwindSafe for DoubleCheckedCell<T> {}
+impl<T: UnwindSafe> UnwindSafe for DoubleCheckedCell<T> {}
 
 #[cfg(test)]
 extern crate scoped_pool;
