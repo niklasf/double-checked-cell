@@ -6,7 +6,14 @@ A thread-safe lazily initialized cell using double-checked locking.
 [![Build Status](https://travis-ci.org/niklasf/double-checked-cell.svg?branch=master)](https://travis-ci.org/niklasf/double-checked-cell)
 [![crates.io](https://img.shields.io/crates/v/double-checked-cell.svg)](https://crates.io/crates/double-checked-cell)
 [![docs.rs](https://docs.rs/double-checked-cell/badge.svg)](https://docs.rs/double-checked-cell)
-[![Passively maintained](https://img.shields.io/badge/passively%20maintained-x-yellow.svg)](#)
+[![No maintenance intended](https://img.shields.io/badge/no%20maintenance%20intended-x-red.svg)](https://github.com/rust-lang/rust/issues/74465)
+
+Deprecated
+----------
+
+You should probably use [once_cell](https://crates.io/crates/once_cell) instead of this crate.
+It provides a superset of this crate's functionality, with a nicely consistent API.
+Its functionality is also being considered for [inclusion in the standard library](https://github.com/rust-lang/rust/issues/74465).
 
 Introduction
 ------------
@@ -43,7 +50,7 @@ fn main() {
 Related crates
 --------------
 
-* [once_cell](https://crates.io/crates/once_cell) - Provides a superset of this crate's functionality, with a nicely consistent API.
+* [once_cell](https://crates.io/crates/once_cell) – See above.
 
 These crates are similar but distinct by design:
 
