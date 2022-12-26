@@ -27,4 +27,3 @@ all-features = true
 
 [badges]
 maintenance = { status = "deprecated" }
-travis-ci = { repository = "niklasf/double-checked-cell" }
